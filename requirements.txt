@@ -1,0 +1,14 @@
+torch>=2.0.0
+torchvision
+jax>=0.4.0
+jaxlib
+flax
+videoprism
+transformers>=4.30.0
+av
+numpy
+pandas
+opencv-python
+scikit-image
+pillow
+tqdm
