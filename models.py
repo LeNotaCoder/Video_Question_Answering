@@ -1,37 +1,30 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class IntermidiateModel(nn.Module):
-    def __init__(self):
-        super(IntermidiateModel, self).__init__()
-        
-        self.H, self.W = 360, 240  
-        self.proj = nn.Linear(768, 128)
-        self.final_conv = nn.Conv2d(3, 3, kernel_size=(3,3), stride=(224//23, 224//120), padding=1)
-        self.bn = nn.BatchNorm2d(3)
+class Final_Model(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers):
+        super(Final_Model, self).__init__()
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
 
-        self.conv_layers = nn.Sequential(
-            nn.Conv2d(128, 32, kernel_size=(5,5), stride=(2,1), padding=2),
-            nn.ReLU(),
-            nn.Conv2d(64, 16, kernel_size=(3,3), stride=(2,1), padding=1), 
-            nn.ReLU(),
-            nn.Conv2d(32, 8, kernel_size=(3,3), stride=(2,1), padding=1), 
-            nn.ReLU(),
-            nn.Conv2d(16, 3, kernel_size=(3,3), stride=(2,2), padding=1), 
-            nn.ReLU(),
-            nn.Conv2d(3, 3, kernel_size=(3,3), stride=(1,1), padding=1), 
-            nn.ReLU()
+        # LSTM to process sequences of frame embeddings
+        self.lstm = nn.LSTM(
+            input_size=input_dim,
+            hidden_size=hidden_dim,
+            num_layers=num_layers,
+            batch_first=True
         )
-        
+
+        # Projection to CLIP's 512-dim embedding space
+        self.proj = nn.Linear(hidden_dim, 512)
+
     def forward(self, x):
-        batch = x.size(0)
-
-        x = self.proj(x) 
-        x = x.view(batch, self.H, self.W, -1).permute(0,3,1,2)
-
-        x = self.conv_layers(x)
-        x = self.final_conv(x)
-        x = self.bn(x)
-        x = F.relu(x) 
-
-        return x
+        # x: (batch_size, num_frames, input_dim)
+        _, (h_n, _) = self.lstm(x)          # h_n: (num_layers, batch_size, hidden_dim)
+        context_vector = h_n[-1]            # Take last layer hidden state: (batch_size, hidden_dim)
+        
+        clip_vector = self.proj(context_vector)  # (batch_size, 512)
+        clip_vector = F.normalize(clip_vector, dim=-1)  # L2 normalize to match CLIP behavior
+        
+        return clip_vector
