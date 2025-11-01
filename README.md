@@ -42,19 +42,6 @@ We combine **state-of-the-art foundation models** with **custom temporal compres
    - No task-specific fine-tuning  
    - Robust across diverse questions and domains
 
----
-
-## Project Structure
-.
-├── main.py                      # Main inference & evaluation script
-├── models.py                    # IntermediateModel (ToImage)
-├── functions.py                 # read_video_frames(), utilities
-├── all_train.json               # Annotations: video_id → MC questions
-├── videos2/                     # Directory with input .mp4 files
-├── requirements.txt             # Python dependencies
-├── README.md                    # This file
-└── outputs/                     # (Optional) Saved reconstructions
-
 
 ---
 
@@ -62,8 +49,8 @@ We combine **state-of-the-art foundation models** with **custom temporal compres
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/cv-perception-challenge-2025.git
-cd cv-perception-challenge-2025
+git clone https://github.com/LeNotaCoder/Video_Question_Answering
+cd Video_Question_Answering
 
 # Create virtual environment
 python -m venv venv
